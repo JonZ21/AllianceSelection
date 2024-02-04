@@ -3,6 +3,7 @@ import Remote from "./components/Remote";
 import "./App.css";
 import RobotContext from "./RobotContext"; // Adjust the path as needed
 import Bracket from "./components/Bracket";
+import mqtt from "mqtt";
 
 function App() {
   const [animateRobot, setAnimateRobot] = useState(false);
@@ -14,6 +15,13 @@ function App() {
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [mqttClient, setMqttClient] = useState(null);
+
+  const mqttConnect = async (host, mqttOption) => {
+    console.log('Connecting to MQTT broker: ', host, mqttOption);
+    setMqttClient(await mqtt.connect(host, mqttOption));
+  };
 
   const fetchRankings = async () => {
     const eventId = 51496; // Example Event ID
@@ -123,6 +131,26 @@ function App() {
     setTeamComponent(updatedTeamComponent);
   }, [rankings]);
 
+  useEffect(() => {
+    if (!mqttClient) {
+      mqttConnect('ws://10.42.0.36:8883', {});
+    }
+
+    if (mqttClient) {
+      console.log(mqttClient);
+      mqttClient.on('connect', () => {
+        console.log('Connected to MQTT broker');
+      });
+      mqttClient.on('error', (err) => {
+        console.error('Connection error: ', err);
+        mqttClient.end();
+      });
+      mqttClient.on('reconnect', () => {
+        console.log('Reconnecting to MQTT broker');
+      });
+    }
+  }, [mqttClient])
+
   return (
     <RobotContext.Provider
       value={{
@@ -138,6 +166,7 @@ function App() {
         setSeeds,
         videoFound,
         rankings,
+        mqttClient,
       }}
     >
       <div className="w-full h-screen items-center flex flex-col">

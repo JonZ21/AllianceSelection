@@ -13,6 +13,7 @@ const Remote = () => {
     seeds,
     setSeeds,
     videoFound,
+    mqttClient,
   } = useContext(RobotContext);
 
   const [currentSeed, setCurrentSeed] = useState(1);
@@ -33,6 +34,8 @@ const Remote = () => {
 
   const handleRequest = () => {
     setRequestedTeam(true);
+    mqttClient.publish("alliance/selected", selectedRobot);
+    mqttClient.publish("alliance/status", "selected");
   };
 
   const checkIfNewCaptain = () => {
@@ -55,6 +58,9 @@ const Remote = () => {
       removeTeam(0);
       setSeeds(newSeeds);
       setCurrentSeed((prevSeed) => prevSeed + 1);
+      mqttClient.publish("alliance/selecting", newSeeds[currentSeed - 1].firstTeam);
+      mqttClient.publish("alliance/selected", "");
+      mqttClient.publish("alliance/status", "selecting");
     } else {
       // alert("cannot new captain");
     }
@@ -86,15 +92,16 @@ const Remote = () => {
   };
 
   const handleAccept = () => {
-    const index = teams.findIndex(
-      (item) => item.number === selectedRobot.toUpperCase()
+    const index = rankings.findIndex(
+      (item) => item.team.name === selectedRobot.toUpperCase()
     );
 
     if (index > -1) {
-      if (!teams[index].cannotAccept) {
+      if (!rankings[index].cannotAccept) {
         setAnimateRobot(false);
-        addTeamToSeed(teams[index].number);
+        addTeamToSeed(rankings[index].team.name);
         removeTeam(index);
+        mqttClient.publish("alliance/status", "accepted");
       } else {
         // alert("failed: " + selectedRobot);
       }
@@ -103,6 +110,8 @@ const Remote = () => {
   };
 
   const handleDecline = () => {
+    mqttClient.publish("alliance/selected", "");
+    mqttClient.publish("alliance/status", "declined");
     const index = teams.findIndex(
       (item) => item.number === selectedRobot.toUpperCase()
     );
