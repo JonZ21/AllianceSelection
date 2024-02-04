@@ -19,13 +19,13 @@ function App() {
   const [mqttClient, setMqttClient] = useState(null);
 
   const mqttConnect = async (host, mqttOption) => {
-    console.log('Connecting to MQTT broker: ', host, mqttOption);
+    console.log("Connecting to MQTT broker: ", host, mqttOption);
     setMqttClient(await mqtt.connect(host, mqttOption));
   };
 
   const fetchRankings = async () => {
     const eventId = 51496; // Example Event ID
-    const divisionId = 1; // Example Division ID
+    const divisionId = 2; // Example Division ID
     let allRankings = [];
     let currentPage = 1;
     const apiKey = "YOUR_AUTH_TOKEN"; // Replace with your actual token
@@ -133,23 +133,23 @@ function App() {
 
   useEffect(() => {
     if (!mqttClient) {
-      mqttConnect('ws://10.42.0.36:8883', {});
+      mqttConnect("ws://10.42.0.36:8883", {});
     }
 
     if (mqttClient) {
       console.log(mqttClient);
-      mqttClient.on('connect', () => {
-        console.log('Connected to MQTT broker');
+      mqttClient.on("connect", () => {
+        console.log("Connected to MQTT broker");
       });
-      mqttClient.on('error', (err) => {
-        console.error('Connection error: ', err);
+      mqttClient.on("error", (err) => {
+        console.error("Connection error: ", err);
         mqttClient.end();
       });
-      mqttClient.on('reconnect', () => {
-        console.log('Reconnecting to MQTT broker');
+      mqttClient.on("reconnect", () => {
+        console.log("Reconnecting to MQTT broker");
       });
     }
-  }, [mqttClient])
+  }, [mqttClient]);
 
   return (
     <RobotContext.Provider
